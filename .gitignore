@@ -14,4 +14,4 @@ set_env_variables.sh
 
 # Dist 
 
-lambads/*/*.zip
+lambads/**/*.zip
