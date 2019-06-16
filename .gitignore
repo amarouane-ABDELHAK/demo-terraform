@@ -7,3 +7,7 @@
 
 # .tfvars files
 *.tfvars
+
+
+# Env variable
+set_env_variables.sh

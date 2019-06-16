@@ -1,0 +1,23 @@
+{
+  "name": "demo-terraform",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "compile": "terraform plan",
+    "deploy": "terraform apply -auto-approve",
+    "redact": "sed -e 's/\\(.*=\\)\\(.*\\)/\\1[Redacted]/' set_env_variables.sh > set_env_variables.example.sh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/amarouane-ABDLHAK/demo-terraform.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/amarouane-ABDLHAK/demo-terraform/issues"
+  },
+  "homepage": "https://github.com/amarouane-ABDLHAK/demo-terraform#readme"
+}

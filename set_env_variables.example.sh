@@ -1,0 +1,5 @@
+export TF_VAR_region=[Redacted]
+export TF_VAR_access_key=[Redacted]
+export TF_VAR_secret_key=[Redacted]
+export TF_VAR_my_ip=[Redacted]
+export TF_VAR_web_server_port=[Redacted]
