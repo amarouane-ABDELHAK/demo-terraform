@@ -10,7 +10,9 @@ variable "web_server_port" {}
 variable "my_ip" {
   
 }
-
+variable "account_num" {
+  
+}
 
 
 provider "aws" {
@@ -67,6 +69,143 @@ resource "aws_security_group" "amaroune-sg" {
     }
 }
   
+resource "aws_lambda_function" "lambda_parse" {
+  filename      = "${path.module}/lambdas/input_parser/parse_inputs.zip"
+  function_name = "parse_inputs"
+  role          = "arn:aws:iam::${var.account_num}:role/earthdatacd-app-lambda-processing"
+  handler       = "parse_inputs.handler"
+
+  # The filebase64sha256() function is available in Terraform 0.11.12 and later
+  # For Terraform 0.11.11 and earlier, use the base64sha256() function and the file() function:
+  # source_code_hash = "${base64sha256(file("lambda_function_payload.zip"))}"
+  source_code_hash = "${filemd5("lambdas/input_parser/parse_inputs.zip")}"
+
+  runtime = "python3.7"
+
+}
+
+resource "aws_lambda_function" "lambda_compute_delta" {
+  filename      = "${path.module}/lambdas/compute_delta/handler.zip"
+  function_name = "compute_delta"
+  role          = "arn:aws:iam::${var.account_num}:role/earthdatacd-app-lambda-processing"
+  handler       = "handler.handler"
+
+  # The filebase64sha256() function is available in Terraform 0.11.12 and later
+  # For Terraform 0.11.11 and earlier, use the base64sha256() function and the file() function:
+  # source_code_hash = "${base64sha256(file("lambda_function_payload.zip"))}"
+  source_code_hash = "${filemd5("lambdas/compute_delta/handler.py")}"
+
+  runtime = "python3.7"
+
+}
+
+resource "aws_lambda_function" "lambda_compute_x1" {
+  filename      = "${path.module}/lambdas/compute_x/handler.zip"
+  function_name = "compute_x1"
+  role          = "arn:aws:iam::${var.account_num}:role/earthdatacd-app-lambda-processing"
+  handler       = "handler.handler_x1"
+
+  # The filebase64sha256() function is available in Terraform 0.11.12 and later
+  # For Terraform 0.11.11 and earlier, use the base64sha256() function and the file() function:
+  # source_code_hash = "${base64sha256(file("lambda_function_payload.zip"))}"
+  source_code_hash = "${filemd5("lambdas/compute_x/handler.zip")}"
+
+  runtime = "python3.7"
+
+}
+
+
+resource "aws_lambda_function" "lambda_compute_x2" {
+  filename      = "${path.module}/lambdas/compute_x/handler.zip"
+  function_name = "compute_x2"
+  role          = "arn:aws:iam::${var.account_num}:role/earthdatacd-app-lambda-processing"
+  handler       = "handler.handler_x2"
+
+  # The filebase64sha256() function is available in Terraform 0.11.12 and later
+  # For Terraform 0.11.11 and earlier, use the base64sha256() function and the file() function:
+  # source_code_hash = "${base64sha256(file("lambda_function_payload.zip"))}"
+  source_code_hash = "${filemd5("lambdas/compute_x/handler.zip")}"
+
+  runtime = "python3.7"
+
+}
+
+resource "aws_lambda_function" "lambda_result" {
+  filename      = "${path.module}/lambdas/result/handler.zip"
+  function_name = "result"
+  role          = "arn:aws:iam::${var.account_num}:role/earthdatacd-app-lambda-processing"
+  handler       = "handler.handler"
+
+  # The filebase64sha256() function is available in Terraform 0.11.12 and later
+  # For Terraform 0.11.11 and earlier, use the base64sha256() function and the file() function:
+  # source_code_hash = "${base64sha256(file("lambda_function_payload.zip"))}"
+  source_code_hash = "${filemd5("lambdas/result/handler.zip")}"
+
+  runtime = "python3.7"
+
+}
+
+
+
+resource "aws_sfn_state_machine" "sfn_state_machine_equation" {
+  name     = "quadratic_equation_solution"
+  role_arn = "arn:aws:iam::${var.account_num}:role/ghrccd-steprole"
+
+  definition = <<EOF
+{
+  "Comment": "Quadratic equation solutions",
+  "StartAt": "ParseValues",
+  "States": {
+    "ParseValues" : {
+        "Type": "Task",
+        "Resource": "${aws_lambda_function.lambda_parse.arn}",
+        "Next": "ComputeDelta"
+    },
+    "ComputeDelta" : {
+        "Type": "Task",
+        "Resource": "${aws_lambda_function.lambda_compute_delta.arn}",
+        "Next": "ComputeX"
+    },
+    
+    "ComputeX": {
+      "Type": "Parallel",
+      "Next": "Result",
+       "Branches": [
+      {
+        "StartAt": "computeX1",
+        "States": {
+          "computeX1": {
+            "Type": "Task",
+            "Resource": "${aws_lambda_function.lambda_compute_x1.arn}",
+            "End": true
+          }
+        }
+      },
+      {
+        "StartAt": "computeX2",
+        "States": {
+          "computeX2": {
+            "Type": "Task",
+            "Resource": "${aws_lambda_function.lambda_compute_x2.arn}",
+            "End": true
+          }
+        }
+      }
+    ]
+      
+  },
+  "Result": {
+      "Type": "Task",
+      "Resource": "${aws_lambda_function.lambda_result.arn}",
+      "End":true
+    }
+
+}
+}
+EOF
+}
+
+
 # }
 # Problem : If you change the zip content but you kept the same name 
 # The S3 object will not be updated ???
@@ -79,6 +218,19 @@ output "ec2_public_ip" {
 
 output "sqs-1-name" {
   value = "${aws_sqs_queue.firstqueue.name}"
+}
+
+output "lambda-parse-arn" {
+  value = "${aws_lambda_function.lambda_parse.arn}"
+}
+
+output "lambda-compute-delta-arn" {
+  value = "${aws_lambda_function.lambda_compute_delta.arn}"
+}
+
+
+output "lambda-compute-x1" {
+  value = "${aws_lambda_function.lambda_compute_x1.last_modified}"
 }
 
 

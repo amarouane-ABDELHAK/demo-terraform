@@ -7,7 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "compile": "terraform plan",
     "deploy": "terraform apply -auto-approve",
-    "redact": "sed -e 's/\\(.*=\\)\\(.*\\)/\\1[Redacted]/' set_env_variables.sh > set_env_variables.example.sh"
+    "redact": "sed -e 's/\\(.*=\\)\\(.*\\)/\\1[Redacted]/' set_env_variables.sh > set_env_variables.example.sh",
+    "redact-all": "bash redact.sh set_env_variables.sh"
   },
   "repository": {
     "type": "git",
