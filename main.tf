@@ -1,4 +1,4 @@
-
+# VARIABLES
 variable "region" {
     type = "string"
     default = "us-east-1"
@@ -14,13 +14,15 @@ variable "account_num" {
   
 }
 
-
+# Provider
 provider "aws" {
     region = "${var.region}"
     access_key = "${var.access_key}"
     secret_key = "${var.secret_key}"
 }
 
+
+# EC2 instance 
 resource "aws_instance" "myfirstec2" {
     ami = "ami-0756fbca465a59a30"
     instance_type = "t2.micro"
@@ -29,7 +31,7 @@ resource "aws_instance" "myfirstec2" {
     user_data = <<-EOF
                 #!/bin/bash
                 yum install httpd -y
-                echo "Hello dear. I am  up and running" >> /var/www/html/index.html
+                echo "Hello world. I am  up and running" >> /var/www/html/index.html
                 yum update -y
                 service httpd start
                 EOF
@@ -69,6 +71,8 @@ resource "aws_security_group" "amaroune-sg" {
     }
 }
   
+
+# LAMBDAS
 resource "aws_lambda_function" "lambda_parse" {
   filename      = "${path.module}/lambdas/input_parser/parse_inputs.zip"
   function_name = "parse_inputs"
